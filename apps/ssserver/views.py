@@ -32,8 +32,9 @@ def user_edit(request, user_id):
             # 修改账户密码
             passwd = request.POST.get('resetpass')
             if len(passwd) > 0:
-                ss_user.user.set_password(passwd)
-                ss_user.user.save()
+                user = ss_user.user
+                user.set_password(passwd)
+                user.save()
             messages.success(request, "数据更新成功", extra_tags="修改成功")
             return HttpResponseRedirect(reverse("sspanel:user_list"))
         else:
@@ -151,6 +152,7 @@ def subscribe(request, token):
 def node_config(request):
     '''返回节点json配置'''
     user = request.user
+    ss_user = user.ss_user
     node_list = Node.objects.filter(level__lte=user.level, show=1)
     data = {'configs': []}
     for node in node_list:
@@ -168,30 +170,30 @@ def node_config(request):
                 "obfs": node.obfs,
                 'obfs_param': node.obfs_param,
                 "protocol": node.protocol,
-                'protocol_param': '{}:{}'.format(user.port,
+                'protocol_param': '{}:{}'.format(ss_user.port,
                                                  user.password),
             })
         elif node.custom_method == 1:
             data['configs'].append({
                 "remarks": node.name,
-                "server_port": user.port,
+                "server_port": ss_user.port,
                 "remarks_base64": base64.b64encode(
                     bytes(node.name, 'utf8')).decode('ascii'),
                 "enable": True,
-                "password": user.password,
-                "method": user.method,
+                "password": ss_user.password,
+                "method": ss_user.method,
                 "server": node.server,
-                "obfs": user.obfs,
-                "protocol": user.protocol,
+                "obfs": ss_user.obfs,
+                "protocol": ss_user.protocol,
             })
         else:
             data['configs'].append({
                 "remarks": node.name,
-                "server_port": user.port,
+                "server_port": ss_user.port,
                 "remarks_base64": base64.b64encode(
                     bytes(node.name, 'utf8')).decode('ascii'),
                 "enable": True,
-                "password": user.password,
+                "password": ss_user.password,
                 "method": node.method,
                 "server": node.server,
                 "obfs": node.obfs,
